@@ -346,6 +346,25 @@ Import the dashboard from `grafana/dashboard.json` or connect Grafana to your Pr
 
 ---
 
+## Benchmark Results
+
+Load tested with k6 — 10 concurrent users per algorithm, 30 seconds each. Test run twice for consistency.
+
+| Metric | Run 1 | Run 2 |
+|---|---|---|
+| Total requests | 8,550 | 8,620 |
+| Throughput | ~85 req/sec | ~86 req/sec |
+| Rejection rate | 90.17% | 90.25% |
+| Avg response time | 4.29ms | 3.49ms |
+| p(95) response time | 7.8ms | 5.26ms |
+| Max response time | 27.99ms | 26.95ms |
+| All checks passed | ✅ 100% | ✅ 100% |
+
+Results were consistent across both runs. All responses returned within 200ms under load with no errors or timeouts across all three algorithms.
+
+![Load Test Dashboard](docs/images/grafana-load-test.png)
+
+
 ## Design Decisions
 
 **Why Redis for config storage?**  
