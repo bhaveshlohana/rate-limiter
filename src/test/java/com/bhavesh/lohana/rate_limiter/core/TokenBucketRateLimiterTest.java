@@ -82,4 +82,19 @@ class TokenBucketRateLimiterTest {
         assertEquals(0, response.getRemainingRequests());
     }
 
+    @Test
+    void shouldAllowAndBlock_usingLuaScript() {
+        RateLimitConfig request = RateLimitConfig.builder()
+                .algorithm(TOKEN_BUCKET)
+                .capacity(3)
+                .refillRatePerSecond(1.0)
+                .build();
+        for (int i = 0; i < 3; i++) {
+            RateLimitResponse response = tokenBucketRateLimiter.isAllowedLua(userId, request);
+            assertTrue(response.isAllowed());
+        }
+        RateLimitResponse response = tokenBucketRateLimiter.isAllowedLua(userId, request);
+        assertFalse(response.isAllowed());
+    }
+
 }

@@ -42,17 +42,18 @@ public class ClientConfigService {
 
     public RateLimitConfig fetchConfig(String clientType) throws ConfigNotFoundException {
         String key = RateLimiterUtils.getConfigKey(clientType);
-        List<Object> data = redisTemplate.opsForHash().multiGet(key, List.of("algorithm", "capacity", "refillRatePerSecond", "limit", "windowSizeSeconds"));
+        List<Object> data = redisTemplate.opsForHash().multiGet(key, List.of("clientType", "algorithm", "capacity", "refillRatePerSecond", "limit", "windowSizeSeconds"));
         if (data.stream().allMatch(Objects::isNull)) {
             throw new ConfigNotFoundException("No configuration found for client type: " + clientType);
         }
-        Algorithm algorithm = data.get(0) != null ? Algorithm.valueOf(data.get(0).toString()) : null;
-        Integer capacity = data.get(1) != null ? Integer.parseInt((String) data.get(1)) : null;
-        Double refillRatePerSecond = data.get(2) != null ? Double.parseDouble((String) data.get(2)) : null;
-        Integer limit = data.get(3) != null ? Integer.parseInt((String) data.get(3)) : null;
-        Integer windowSizeSeconds = data.get(4) != null ? Integer.parseInt((String) data.get(4)) : null;
+        String clientTypeFromRedis = data.get(0) != null ? data.get(0).toString() : null;
+        Algorithm algorithm = data.get(1) != null ? Algorithm.valueOf(data.get(1).toString()) : null;
+        Integer capacity = data.get(2) != null ? Integer.parseInt((String) data.get(2)) : null;
+        Double refillRatePerSecond = data.get(3) != null ? Double.parseDouble((String) data.get(3)) : null;
+        Integer limit = data.get(4) != null ? Integer.parseInt((String) data.get(4)) : null;
+        Integer windowSizeSeconds = data.get(5) != null ? Integer.parseInt((String) data.get(5)) : null;
         return RateLimitConfig.builder()
-                .clientType(clientType)
+                .clientType(clientTypeFromRedis)
                 .algorithm(algorithm)
                 .capacity(capacity)
                 .refillRatePerSecond(refillRatePerSecond)

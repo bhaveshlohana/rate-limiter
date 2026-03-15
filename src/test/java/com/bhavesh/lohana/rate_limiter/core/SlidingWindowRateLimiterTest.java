@@ -82,4 +82,19 @@ class SlidingWindowRateLimiterTest {
         assertEquals(0, response.getRemainingRequests());
     }
 
+    @Test
+    void shouldAllowAndBlock_usingLuaScript() throws InterruptedException {
+        RateLimitConfig request = RateLimitConfig.builder()
+                .algorithm(SLIDING_WINDOW)
+                .limit(3)
+                .windowSizeSeconds(60)
+                .build();
+        for (int i = 0; i < 3; i++) {
+            RateLimitResponse response = slidingWindowRateLimiter.isAllowedLua(userId, request);
+            assertTrue(response.isAllowed());
+        }
+        RateLimitResponse response = slidingWindowRateLimiter.isAllowedLua(userId, request);
+        assertFalse(response.isAllowed());
+    }
+
 }
