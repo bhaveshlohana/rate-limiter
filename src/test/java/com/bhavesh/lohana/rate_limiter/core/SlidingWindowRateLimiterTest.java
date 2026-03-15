@@ -1,0 +1,85 @@
+package com.bhavesh.lohana.rate_limiter.core;
+
+import com.bhavesh.lohana.rate_limiter.config.EmbeddedRedisConfig;
+import com.bhavesh.lohana.rate_limiter.model.RateLimitConfig;
+import com.bhavesh.lohana.rate_limiter.model.RateLimitResponse;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.time.Duration;
+
+import static com.bhavesh.lohana.rate_limiter.domain.Algorithm.FIXED_WINDOW;
+import static com.bhavesh.lohana.rate_limiter.domain.Algorithm.SLIDING_WINDOW;
+import static java.lang.Thread.sleep;
+import static org.junit.jupiter.api.Assertions.*;
+
+@SpringBootTest
+@ActiveProfiles("test")
+@Import(EmbeddedRedisConfig.class)
+class SlidingWindowRateLimiterTest {
+
+    @Autowired
+    private SlidingWindowRateLimiter slidingWindowRateLimiter;
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    private static final String userId = "user123";
+
+    @BeforeEach
+    void clearRedis() {
+        redisTemplate.getConnectionFactory().getConnection().flushAll();
+    }
+
+    @Test
+    void shouldAllowRequestsUnderLimit() {
+        RateLimitConfig request = RateLimitConfig.builder()
+                .algorithm(SLIDING_WINDOW)
+                .limit(5)
+                .windowSizeSeconds(60)
+                .build();
+        for (int i = 0; i < 5; i++) {
+            RateLimitResponse response = slidingWindowRateLimiter.isAllowed(userId, request);
+            assertTrue(response.isAllowed());
+        }
+    }
+
+    @Test
+    void shouldAllowRequestsUnderLimitWithSleep() throws InterruptedException {
+        RateLimitConfig request = RateLimitConfig.builder()
+                .algorithm(SLIDING_WINDOW)
+                .limit(5)
+                .windowSizeSeconds(2)
+                .build();
+        for (int i = 0; i < 5; i++) {
+            RateLimitResponse response = slidingWindowRateLimiter.isAllowed(userId, request);
+            assertTrue(response.isAllowed());
+            sleep(Duration.ofMillis(600));
+        }
+        RateLimitResponse response = slidingWindowRateLimiter.isAllowed(userId, request);
+        assertTrue(response.isAllowed());
+    }
+
+    @Test
+    void shouldBlockRequestsOverLimit() {
+        RateLimitConfig request = RateLimitConfig.builder()
+                .algorithm(SLIDING_WINDOW)
+                .limit(3)
+                .windowSizeSeconds(60)
+                .build();
+        for (int i = 0; i < 3; i++) {
+            RateLimitResponse response = slidingWindowRateLimiter.isAllowed(userId, request);
+            assertTrue(response.isAllowed());
+        }
+        RateLimitResponse response = slidingWindowRateLimiter.isAllowed(userId, request);
+        assertFalse(response.isAllowed());
+        assertEquals("Rate limit exceeded", response.getReason());
+        assertEquals(0, response.getRemainingRequests());
+    }
+
+}
