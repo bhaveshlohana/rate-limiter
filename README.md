@@ -42,7 +42,7 @@ rate-limiter/
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Your Application                      │
+│                    Your Application                     │
 │                                                         │
 │   Mode 1: POST /api/rate-limiter/check                  │
 │   Mode 2: @RateLimit(clientType = "PREMIUM")            │
@@ -51,7 +51,7 @@ rate-limiter/
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────┐
-│              Rate Limiter Service                        │
+│              Rate Limiter Service                       │
 │                                                         │
 │  RateLimiterController                                  │
 │         │                                               │
@@ -59,21 +59,21 @@ rate-limiter/
 │  RateLimiterFactory ──── ClientConfigService            │
 │         │                       │                       │
 │         ▼                       ▼                       │
-│  ┌─────────────┐         ┌─────────────┐               │
-│  │  Algorithm   │         │   Config    │               │
-│  │  Selection  │         │   Lookup    │               │
-│  └─────────────┘         └─────────────┘               │
+│  ┌─────────────┐         ┌─────────────┐                │
+│  │  Algorithm  │        │   Config   │               │
+│  │  Selection  │         │   Lookup    │                │
+│  └─────────────┘         └─────────────┘                │
 │         │                                               │
 │         ▼                                               │
-│  ┌──────────────────────────────────┐                  │
-│  │         Redis Lua Script         │                  │
-│  │    (atomic read-check-write)     │                  │
-│  └──────────────────────────────────┘                  │
+│  ┌──────────────────────────────────┐                   │
+│  │         Redis Lua Script         │                   │
+│  │    (atomic read-check-write)     │                   │
+│  └──────────────────────────────────┘                   │
 └─────────────────┬───────────────────────────────────────┘
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────┐
-│                      Redis                               │
+│                      Redis                              │
 │                                                         │
 │  ratelimit:config:PREMIUM    ← client configs           │
 │  ratelimit:fixed:user123     ← algorithm state          │
@@ -82,7 +82,7 @@ rate-limiter/
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────┐
-│              Observability Stack                         │
+│              Observability Stack                        │
 │                                                         │
 │  /actuator/prometheus ──► Prometheus ──► Grafana        │
 └─────────────────────────────────────────────────────────┘
